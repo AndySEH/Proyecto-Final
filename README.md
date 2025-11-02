@@ -21,3 +21,42 @@ Plataforma para **Monitoreo Retrospectivo en UCI** que trabaja con datasets hist
 - Analítica **retrospectiva** con datos históricos (vitales, labs, procedimientos, diagnósticos).
 - Dashboards/BI para equipos UCI y comités de calidad.
 
+---
+
+## Quickstart: Base web para visualizar CSV de signos vitales
+
+Este repositorio incluye una base con **Next.js (React + TypeScript)**, **TailwindCSS** y **Recharts** para cargar un CSV y mostrar un dashboard y detalle por paciente.
+
+### Estructura relevante
+
+- `app/` – Páginas (App Router) y rutas API
+- `app/api/patients` – Endpoints que parsean `data/sample_vitals.csv`
+- `app/patient/[id]` – Página de detalle con gráficas
+- `components/PatientCharts.tsx` – Gráficas con Recharts
+- `data/sample_vitals.csv` – CSV de ejemplo (reemplázalo por el tuyo)
+
+### Requisitos
+
+- Node.js 18 o superior
+
+### Ejecutar (Windows PowerShell)
+
+```powershell
+npm install
+npm run dev
+```
+
+Abre http://localhost:3000 para ver el dashboard.
+
+### Cargar tu dataset grande (100k+ filas)
+
+El parser soporta tus encabezados con espacios y mayúsculas, por ejemplo: `Patient ID`, `Heart Rate`, `Respiratory Rate`, `Timestamp`, `Body Temperature`, `Oxygen Saturation`, `Systolic Blood Pressure`, `Diastolic Blood Pressure`. Las columnas adicionales (Age, Gender, BMI, etc.) se ignoran por ahora.
+
+Notas de rendimiento:
+- 100k filas suele ser manejable en desarrollo local. Si el archivo crece mucho más, podemos migrar a parsing por streaming o a una base de datos para consultas más rápidas.
+
+### Notas y siguientes pasos
+
+- Los endpoints están marcados como dinámicos y leen del CSV en cada petición.
+- Para uso profesional, conviene migrar a base de datos, añadir autenticación/roles y registro de auditoría.
+
