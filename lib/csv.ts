@@ -11,6 +11,11 @@ export type VitalRecord = {
   dbp?: number | null; // diastolic blood pressure
   rr?: number | null; // respiratory rate
   temp?: number | null; // temperature
+  // Optional patient metadata when provided in the same CSV
+  name?: string; // patient full name
+  age?: number | null; // patient age in years
+  unit?: string; // e.g., UCI-101 / bed
+  admission?: string; // ISO date string
 };
 
 type Cache = { filePath: string; mtimeMs: number; data: VitalRecord[] } | null;
@@ -21,9 +26,7 @@ export function resolveCsvPath(defaultRelPath = "data/sample_vitals.csv"): strin
   if (envPath) {
     return path.isAbsolute(envPath) ? envPath : path.join(process.cwd(), envPath);
   }
-  // Prefer mi_dataset.csv if exists
-  const preferred = path.join(process.cwd(), "data/mi_dataset.csv");
-  if (fs.existsSync(preferred)) return preferred;
+  // Always use the provided default (sample_vitals.csv) unless overridden by env var
   return path.isAbsolute(defaultRelPath)
     ? defaultRelPath
     : path.join(process.cwd(), defaultRelPath);
@@ -96,6 +99,21 @@ function normalizeRow(row: Record<string, string>): VitalRecord {
     get(["dbp", "Diastolic Blood Pressure", "diastolic blood pressure", "Diastolic"])
   ) as number | null;
 
+  // Optional metadata if included in the same CSV
+  const name = get(["name", "Nombre", "patient_name", "Paciente"]);
+  const age = numOrNull(get(["age", "Edad"])) as number | null;
+  const unit = get(["unit", "Unidad", "ward", "UCI", "uci", "Bed", "bed"]);
+  const admission = get([
+    "admission",
+    "admission_date",
+    "admit_date",
+    "ingreso",
+    "Ingreso",
+    "fecha ingreso",
+    "Fecha ingreso",
+    "date_admission",
+  ]);
+
   return {
     patient_id: patient_id ?? "",
     timestamp: timestamp ?? "",
@@ -105,6 +123,10 @@ function normalizeRow(row: Record<string, string>): VitalRecord {
     dbp,
     rr,
     temp,
+    name: name ?? undefined,
+    age: age ?? undefined,
+    unit: unit ?? undefined,
+    admission: admission ?? undefined,
   };
 }
 
